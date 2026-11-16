@@ -1,0 +1,1 @@
+{"name": "hunchnet", "description": "A predictive-coding sequence learner in Rust/WASM that learns melodies and text online and shows its surprise.", "language": "Rust", "arc_days": 7, "pages": true}
