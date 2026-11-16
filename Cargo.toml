@@ -1,0 +1,16 @@
+[package]
+name = "hunchnet"
+version = "0.1.0"
+edition = "2021"
+description = "A predictive-coding sequence learner that learns online, from scratch, with local error-driven updates."
+license = "MIT"
+repository = "https://github.com/Striv11/hunchnet"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+
+[profile.release]
+opt-level = 3
+lto = true
