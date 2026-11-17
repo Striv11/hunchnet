@@ -10,13 +10,21 @@
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,sans-serif}
 main{max-width:40rem;margin:0 auto;padding:4rem 1.25rem}
 h1{font-size:2.25rem;margin:0 0 .5rem}p{color:var(--muted)}a{color:var(--accent)}
-</style>
+button{font:inherit;margin:0 .25rem .25rem 0;padding:.4rem .9rem}pre{color:var(--fg)}</style>
 </head>
 <body>
 <main>
 <h1>hunchnet</h1>
 <p>A brain-inspired model that learns melodies and text patterns <em>online</em>, and shows you its predictions and its surprise as it goes. Everything runs on your device.</p>
-<p><strong>Status:</strong> the Rust learning core is built and tested. The interactive in-browser demo (Rust compiled to WebAssembly) is coming over the next few days. Follow along on <a href="https://github.com/Striv11/hunchnet">GitHub</a>.</p>
+<p><strong>Status:</strong> the Rust core now runs in your browser as WebAssembly. Press a note below and watch the prediction and surprise; richer visualisation is coming. Source on <a href="https://github.com/Striv11/hunchnet">GitHub</a>.</p>
+<section aria-labelledby="try">
+<h2 id="try">Try it</h2>
+<p id="status" role="status">Loading model…</p>
+<div id="notes" role="group" aria-label="Notes to feed the model"></div>
+<p>Last surprise: <output id="surprise">–</output> nats</p>
+<pre id="probs" aria-label="Predicted probability of each next note"></pre>
+</section>
 </main>
+<script type="module" src="./src/main.ts"></script>
 </body>
 </html>
