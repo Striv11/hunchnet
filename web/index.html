@@ -10,7 +10,14 @@
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,sans-serif}
 main{max-width:40rem;margin:0 auto;padding:4rem 1.25rem}
 h1{font-size:2.25rem;margin:0 0 .5rem}p{color:var(--muted)}a{color:var(--accent)}
-button{font:inherit;margin:0 .25rem .25rem 0;padding:.4rem .9rem}pre{color:var(--fg)}</style>
+.bars{display:grid;grid-template-columns:1.5rem 1fr 3rem;gap:.25rem .5rem;align-items:center;font-variant-numeric:tabular-nums}
+.bar{height:1rem;background:color-mix(in srgb,var(--muted) 20%,transparent);border-radius:3px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);transition:width .15s}
+button{font:inherit;margin:0 .25rem .25rem 0;padding:.4rem .9rem;min-width:2.75rem;min-height:2.75rem}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#plot{width:100%;height:auto;border:1px solid var(--muted);border-radius:4px;color:var(--muted)}
+#empty{border:1px dashed var(--muted);border-radius:4px;padding:.75rem 1rem}
+main{max-width:44rem}</style>
 </head>
 <body>
 <main>
@@ -20,9 +27,14 @@ button{font:inherit;margin:0 .25rem .25rem 0;padding:.4rem .9rem}pre{color:var(-
 <section aria-labelledby="try">
 <h2 id="try">Try it</h2>
 <p id="status" role="status">Loading model…</p>
+<div id="empty" hidden>Nothing yet. Press a note below (or type <kbd>1</kbd>–<kbd>6</kbd>, or <kbd>C D E F G A</kbd>) and repeat a short pattern such as C D E C D E. The bars show what the model expects next; the line shows how surprised it was.</div>
 <div id="notes" role="group" aria-label="Notes to feed the model"></div>
-<p>Last surprise: <output id="surprise">–</output> nats</p>
-<pre id="probs" aria-label="Predicted probability of each next note"></pre>
+<p><button id="reset" type="button">New sequence</button> Last surprise: <output id="surprise">–</output> nats</p>
+<h3>Predicted next note</h3>
+<div id="probs" class="bars" role="list" aria-label="Predicted probability of each next note"></div>
+<h3>Surprise over time</h3>
+<svg id="plot" viewBox="0 0 600 160" role="img" aria-label="Surprise over time"></svg>
+<p id="plot-desc">The dashed line is the surprise of a uniform guess; the curve falling below it means the model is learning.</p>
 </section>
 </main>
 <script type="module" src="./src/main.ts"></script>

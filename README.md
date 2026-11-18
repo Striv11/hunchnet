@@ -28,7 +28,7 @@ Predictive coding is a theory in which the brain keeps a generative model and le
                           local updates:  C,b ← sensory error (o - p)·h
                                           A,B ← state error (h - h_prior)
 ```
-Modules (`src/`): `model.rs` (the network), `baseline.rs` (order-k n-gram), `sequence.rs` (alphabet and helpers), `rng.rs` (SplitMix64, deterministic across platforms). `wasm.rs` is a dependency-free C ABI (handle table, no panics across the boundary) that `web/src/hunchnet.ts` wraps; `web/` is a Vite + TypeScript app.
+Modules (`src/`): `model.rs` (the network), `baseline.rs` (order-k n-gram), `sequence.rs` (alphabet and helpers), `rng.rs` (SplitMix64, deterministic across platforms). `wasm.rs` is a dependency-free C ABI (handle table, no panics across the boundary) that `web/src/hunchnet.ts` wraps; `web/` is a Vite + TypeScript app (`session.ts` holds stream state, `plot.ts` builds the SVG; both are DOM-free and unit-tested).
 
 Invariants: predictions are always valid probability distributions; runs are deterministic for a given seed; surprise is measured *before* learning from the symbol.
 
@@ -45,7 +45,7 @@ cd web && npm ci && npm test && npm run dev
 ## Demo
 Terminal demo (works today). Output from `cargo run --release --example demo`: surprise per pass of a 28-note melody, repeated 40 times, falls from 1.69 nats (about a uniform guess, ln 6 = 1.79) to 0.28 as the network learns online. The order-2 n-gram baseline reaches 0.24, so on this simple melody the baseline wins; the interesting comparisons are on contexts that need memory (see `tests/learning.rs`).
 
-Browser demo: the Rust core compiled to WebAssembly; press notes and see the predicted distribution and surprise. Visualisation comes next.
+Browser demo: the Rust core compiled to WebAssembly; press notes (buttons, or keys `1`-`6` / `C D E F G A`) and watch predicted-probability bars and a surprise-over-time plot update live; "New sequence" starts over with an untrained model. The dashed line on the plot is the surprise of a uniform guess.
 
 ## Design decisions & trade-offs
 - **No BPTT.** Updates are local to each step; this is the point of the exercise, at the cost of weaker long-range credit assignment than an LSTM.
@@ -58,7 +58,7 @@ Browser demo: the Rust core compiled to WebAssembly; press notes and see the pre
 See [PLAN.md](PLAN.md) for the seven-day arc.
 - [x] Core predictive-coding model, n-gram baseline, tests, terminal demo
 - [x] WASM bindings and web scaffold
-- [ ] Prediction and surprise visualisation
+- [x] Prediction and surprise visualisation
 - [ ] Melody playback and text mode
 - [ ] Two-level hierarchy and baseline comparison charts
 - [ ] End-to-end tests, performance budget, accessibility

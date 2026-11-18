@@ -16,3 +16,9 @@ Newest entries at the bottom. Each entry records what actually changed, what was
 - CI now has a `web` job (wasm build, vitest, vite build); the Pages workflow builds and deploys `web/dist`.
 - Learned: skipping wasm-bindgen is cheap at this API size; the wasm is ~38 KB. Read `memory.buffer` fresh on each call since it detaches on growth.
 - Not verified locally: the Pages deploy itself (needs GitHub). Next: Day 3, live probability bars and surprise-over-time plot.
+
+## 2026-11-18 (Day 3)
+- Live visualisation: probability bars (with aria labels) and an SVG surprise-over-time plot with a dashed uniform-guess reference line; empty state explains what to do; "New sequence" builds a fresh untrained model and clears the plot; keyboard input (`1`-`6`, note letters).
+- Kept logic out of the DOM: `Session` (history, cap, reset) and `plot.ts` (pure SVG/point builders, screen-reader description) have vitest tests with a fake learner, so they run without a browser.
+- Learned: the wasm target had to be installed locally (`rustup target add wasm32-unknown-unknown`) to run the web tests; no Playwright yet, so the DOM wiring in `main.ts` is only verified by typecheck and build. Day 6 e2e should cover it.
+- Next: Day 4, preset melodies, Web Audio playback, text mode, dreaming.
