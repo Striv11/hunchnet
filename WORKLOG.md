@@ -22,3 +22,10 @@ Newest entries at the bottom. Each entry records what actually changed, what was
 - Kept logic out of the DOM: `Session` (history, cap, reset) and `plot.ts` (pure SVG/point builders, screen-reader description) have vitest tests with a fake learner, so they run without a browser.
 - Learned: the wasm target had to be installed locally (`rustup target add wasm32-unknown-unknown`) to run the web tests; no Playwright yet, so the DOM wiring in `main.ts` is only verified by typecheck and build. Day 6 e2e should cover it.
 - Next: Day 4, preset melodies, Web Audio playback, text mode, dreaming.
+
+## 2026-11-19 (Day 4)
+- Added `Model::dream(n, seed)`: samples from the model's own generative loop (state follows its prior, no inference, no learning) on a clone, so the live model is untouched. Exposed as `hn_dream` and `Model.dream` in the wrapper.
+- Tests: a trained cycle is dreamed back (>= 30/39 transitions follow it), dreaming leaves `probs` unchanged, same seed gives the same dream. Learned that a well-trained model is so confident that different seeds give the *same* dream, so seed sensitivity is tested on an untrained model.
+- Web: preset melodies (including a memory-dependent one), Web Audio note player, speed select, mute, Play/Dream buttons with Stop, Space shortcut, shortcuts documented in-page. Pure data/helpers live in `melodies.ts` with tests; DOM timer wiring is still only typechecked and built (e2e is Day 6).
+- Day 4 is marked partial: free-text mode is not done. It needs a variable-size alphabet, which the fixed six-note UI does not support yet.
+- Next: text mode (alphabet from input, reuse Session), then Day 5 hierarchy.

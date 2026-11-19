@@ -10,10 +10,18 @@ function fake(vocab = 3): Learner {
     observe: () => ++n,
     probs: () => new Float32Array(vocab).fill(1 / vocab),
     resetContext: () => {},
+    dream: (k) => Array(k).fill(1),
   };
 }
 
 describe("Session", () => {
+  it("dreaming does not touch the history", () => {
+    const s = new Session(() => fake());
+    s.push(0);
+    expect(s.dream(4)).toEqual([1, 1, 1, 1]);
+    expect(s.history).toHaveLength(1);
+  });
+
   it("starts empty, records steps, and resets on newSequence with a fresh model", () => {
     const s = new Session(() => fake());
     expect(s.isEmpty).toBe(true);

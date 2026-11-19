@@ -65,4 +65,17 @@ describe("Hunchnet wasm wrapper", () => {
     expect(before.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 4);
     m.dispose();
   });
+
+  it("dreams a learned cycle without changing the model", () => {
+    const m = hn.create({ vocab: 3, seed: 3 });
+    for (let i = 0; i < 600; i++) m.observe(i % 3);
+    const before = m.probs();
+    const d = m.dream(30, 4);
+    expect(d).toHaveLength(30);
+    expect(d.filter((x, i) => i > 0 && x === (d[i - 1] + 1) % 3).length).toBeGreaterThanOrEqual(27);
+    expect(m.dream(30, 4)).toEqual(d);
+    expect(Array.from(m.probs())).toEqual(Array.from(before));
+    expect(() => m.dream(5000)).toThrow(RangeError);
+    expect(m.dream(0)).toEqual([]);
+  });
 });

@@ -1,8 +1,9 @@
 import { Hunchnet } from "./hunchnet";
 import { describeSurprise, surpriseSvg } from "./plot";
+import { NotePlayer } from "./audio";
+import { clampInterval, loopNote, NOTES, PRESETS, SPEEDS } from "./melodies";
 import { Session } from "./session";
 
-const NOTES = ["C", "D", "E", "F", "G", "A"];
 const $ = <T extends Element = HTMLElement>(id: string) => document.getElementById(id) as unknown as T;
 
 function render(s: Session) {
@@ -24,10 +25,59 @@ async function main() {
   const hn = await Hunchnet.load(fetch(`${import.meta.env.BASE_URL}hunchnet.wasm`));
   let seed = 1;
   const session = new Session(() => hn.create({ vocab: NOTES.length, seed: seed++ }));
-  const press = (i: number) => {
+  const player = new NotePlayer();
+  const interval = () => clampInterval(Number($<HTMLSelectElement>("speed").value));
+  const press = (i: number, quiet = false) => {
     session.push(i);
+    if (!quiet) player.play(i, interval());
     render(session);
   };
+
+  // One timer at a time: either a preset is being played into the model, or a dream is playing.
+  let timer: number | undefined;
+  const stop = (msg?: string) => {
+    window.clearInterval(timer);
+    timer = undefined;
+    document.querySelectorAll<HTMLButtonElement>("[data-run]").forEach((b) => {
+      b.textContent = b.dataset.label!;
+      b.setAttribute("aria-pressed", "false");
+    });
+    if (msg) $("status").textContent = msg;
+  };
+  const run = (btn: HTMLButtonElement, tick: (i: number) => boolean | void, msg: string) => {
+    if (timer !== undefined) return stop("Stopped.");
+    let i = 0;
+    btn.textContent = "Stop";
+    btn.setAttribute("aria-pressed", "true");
+    $("status").textContent = msg;
+    timer = window.setInterval(() => {
+      if (tick(i++) === false) stop("Done.");
+    }, interval());
+  };
+
+  PRESETS.forEach((p) => $("preset").append(new Option(p.name, p.id)));
+  SPEEDS.forEach((s) => $("speed").append(new Option(s.label, String(s.ms), false, s.ms === 350)));
+  const play = $<HTMLButtonElement>("play");
+  play.addEventListener("click", () => {
+    const preset = PRESETS.find((p) => p.id === $<HTMLSelectElement>("preset").value) ?? PRESETS[0];
+    run(play, (i) => press(loopNote(preset.notes, i)), `Playing "${preset.name}" on a loop. Watch surprise fall.`);
+  });
+  const dream = $<HTMLButtonElement>("dream");
+  dream.addEventListener("click", () => {
+    const notes = session.dream(16, Date.now());
+    run(
+      dream,
+      (i) => {
+        if (i >= notes.length) return false;
+        player.play(notes[i], interval());
+        $("dreamed").textContent = notes.slice(0, i + 1).map((n) => NOTES[n]).join(" ");
+      },
+      "Dreaming: the model plays its own continuation. It is not learning from this.",
+    );
+  });
+  $<HTMLInputElement>("mute").addEventListener("change", (e) => {
+    player.muted = (e.target as HTMLInputElement).checked;
+  });
   NOTES.forEach((n, i) => {
     const b = document.createElement("button");
     b.type = "button";
@@ -37,15 +87,22 @@ async function main() {
     $("notes").append(b);
   });
   $("reset").addEventListener("click", () => {
+    stop();
     session.newSequence();
+    $("dreamed").textContent = "";
     render(session);
     $("status").textContent = "Started a new sequence with an untrained model.";
   });
   document.addEventListener("keydown", (e) => {
+    if (e.key === " " && (e.target as HTMLElement).tagName !== "BUTTON") {
+      e.preventDefault();
+      play.click();
+      return;
+    }
     if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
     const t = e.target as HTMLElement;
-    if (t.tagName === "INPUT" || t.tagName === "TEXTAREA") return;
-    const i = /^[1-6]$/.test(e.key) ? Number(e.key) - 1 : NOTES.indexOf(e.key.toUpperCase());
+    if (["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName)) return;
+    const i = /^[1-6]$/.test(e.key) ? Number(e.key) - 1 : (NOTES as readonly string[]).indexOf(e.key.toUpperCase());
     if (i >= 0 && e.key.length === 1) press(i);
   });
   $("status").textContent = "Ready. Play a repeating pattern and watch surprise fall.";

@@ -8,6 +8,7 @@ interface Exports {
   hn_reset_context(handle: number): void;
   hn_vocab(handle: number): number;
   hn_probs_ptr(handle: number): number;
+  hn_dream(handle: number, n: number, seed: number): number;
 }
 
 export interface ModelOptions {
@@ -73,6 +74,18 @@ export class Model {
     const ptr = this.wasm.hn_probs_ptr(this.live());
     // Read memory.buffer fresh: it is replaced if wasm memory grows.
     return new Float32Array(this.wasm.memory.buffer, ptr, this.vocab).slice();
+  }
+
+  /**
+   * Sample `n` symbols (max 4096) from the model's own predictions. Does not
+   * learn and does not change the model; the same seed gives the same dream.
+   */
+  dream(n: number, seed = 1): number[] {
+    const h = this.live();
+    if (!Number.isInteger(n) || n < 0 || n > 4096) throw new RangeError("n must be 0..4096");
+    if (n === 0) return [];
+    const ptr = this.wasm.hn_dream(h, n, seed >>> 0);
+    return Array.from(new Uint32Array(this.wasm.memory.buffer, ptr, n));
   }
 
   /** Forget the running context, keep the learned weights. */

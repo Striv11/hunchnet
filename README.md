@@ -45,13 +45,13 @@ cd web && npm ci && npm test && npm run dev
 ## Demo
 Terminal demo (works today). Output from `cargo run --release --example demo`: surprise per pass of a 28-note melody, repeated 40 times, falls from 1.69 nats (about a uniform guess, ln 6 = 1.79) to 0.28 as the network learns online. The order-2 n-gram baseline reaches 0.24, so on this simple melody the baseline wins; the interesting comparisons are on contexts that need memory (see `tests/learning.rs`).
 
-Browser demo: the Rust core compiled to WebAssembly; press notes (buttons, or keys `1`-`6` / `C D E F G A`) and watch predicted-probability bars and a surprise-over-time plot update live; "New sequence" starts over with an untrained model. The dashed line on the plot is the surprise of a uniform guess.
+Browser demo: the Rust core compiled to WebAssembly; press notes (buttons, or keys `1`-`6` / `C D E F G A`) and watch predicted-probability bars and a surprise-over-time plot update live; "New sequence" starts over with an untrained model. Pick a preset melody and press Play (or Space) to stream it into the model with Web Audio sound and a speed control; press **Dream** and the model samples 16 notes from its own predictions and plays them, without learning from them (`Model::dream`, `hn_dream`). The dashed line on the plot is the surprise of a uniform guess.
 
 ## Design decisions & trade-offs
 - **No BPTT.** Updates are local to each step; this is the point of the exercise, at the cost of weaker long-range credit assignment than an LSTM.
 - **One-hot discrete symbols.** Keeps surprise interpretable in nats and fits notes and characters.
 - **Hand-rolled dense math on `Vec<f32>`.** Hidden sizes are small (tens of units), so clarity beats BLAS.
-- **Plain C ABI instead of wasm-bindgen.** The surface is six functions, so a hand-written typed wrapper avoids a toolchain dependency and keeps the wasm at ~38 KB.
+- **Plain C ABI instead of wasm-bindgen.** The surface is seven functions, so a hand-written typed wrapper avoids a toolchain dependency and keeps the wasm at ~38 KB.
 - **Deterministic PRNG** instead of `rand`, so tests and WASM match exactly.
 
 ## Roadmap
@@ -59,7 +59,8 @@ See [PLAN.md](PLAN.md) for the seven-day arc.
 - [x] Core predictive-coding model, n-gram baseline, tests, terminal demo
 - [x] WASM bindings and web scaffold
 - [x] Prediction and surprise visualisation
-- [ ] Melody playback and text mode
+- [x] Melody playback, speed control and dreaming
+- [ ] Text mode
 - [ ] Two-level hierarchy and baseline comparison charts
 - [ ] End-to-end tests, performance budget, accessibility
 - [ ] Polish, screenshots, docs

@@ -6,6 +6,7 @@ export interface Learner {
   observe(sym: number): number;
   probs(): Float32Array;
   resetContext(): void;
+  dream(n: number, seed?: number): number[];
 }
 
 export interface Step {
@@ -49,6 +50,11 @@ export class Session {
   /** Distribution over the next symbol. */
   probs(): Float32Array {
     return this.model.probs();
+  }
+
+  /** Sample a continuation from the model without learning from it. */
+  dream(n: number, seed?: number): number[] {
+    return this.model.dream(n, seed);
   }
 
   /** Mean surprise of the last `n` steps (NaN when empty). */
