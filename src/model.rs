@@ -51,6 +51,7 @@ impl Config {
     }
 }
 
+#[derive(Clone)]
 pub struct Model {
     cfg: Config,
     a: Vec<f32>, // hidden x hidden
@@ -135,6 +136,34 @@ impl Model {
     /// Current prediction (valid after `new`, `observe` or `reset_context`).
     pub fn probs(&self) -> &[f32] {
         &self.probs
+    }
+
+    /// "Dream": sample `n` symbols from the model's own generative loop,
+    /// feeding each sampled symbol back in. No inference and no learning
+    /// happens, and `self` is left untouched (it runs on a copy), so the
+    /// same `seed` always yields the same dream.
+    pub fn dream(&self, n: usize, seed: u64) -> Vec<usize> {
+        let mut m = self.clone();
+        let mut rng = Rng::new(seed);
+        let mut out = Vec::with_capacity(n);
+        for _ in 0..n {
+            let r = rng.next_f32();
+            let mut acc = 0.0;
+            let mut sym = m.probs.len() - 1;
+            for (i, p) in m.probs.iter().enumerate() {
+                acc += p;
+                if r < acc {
+                    sym = i;
+                    break;
+                }
+            }
+            out.push(sym);
+            // Without a real observation the state follows its own prior.
+            m.h.clone_from(&m.h_prior);
+            m.prev_sym = Some(sym);
+            m.predict();
+        }
+        out
     }
 
     /// Present the next symbol: infer the state, learn, and return the

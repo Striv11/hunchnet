@@ -15,6 +15,10 @@ thread_local! {
     static MODELS: RefCell<Vec<Option<Model>>> = const { RefCell::new(Vec::new()) };
 }
 
+thread_local! {
+    static DREAM: RefCell<Vec<u32>> = const { RefCell::new(Vec::new()) };
+}
+
 fn with_model<T>(handle: u32, f: impl FnOnce(&mut Model) -> T) -> Option<T> {
     MODELS.with(|m| {
         let mut m = m.borrow_mut();
@@ -93,6 +97,23 @@ pub extern "C" fn hn_probs_ptr(handle: u32) -> usize {
     with_model(handle, |m| m.probs().as_ptr() as usize).unwrap_or(0)
 }
 
+/// Sample `n` symbols (capped at 4096) from the model's own predictions
+/// without learning, writing them as `u32`s into a model-owned buffer.
+/// Returns the buffer address (0 for a bad handle); `n` values are valid until
+/// the next `hn_dream` call. The model itself is not changed.
+#[no_mangle]
+pub extern "C" fn hn_dream(handle: u32, n: u32, seed: u32) -> usize {
+    let n = n.min(4096) as usize;
+    let Some(syms) = with_model(handle, |m| m.dream(n, seed as u64)) else {
+        return 0;
+    };
+    DREAM.with(|d| {
+        let mut d = d.borrow_mut();
+        *d = syms.into_iter().map(|s| s as u32).collect();
+        d.as_ptr() as usize
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -127,6 +148,25 @@ mod tests {
         let got: Vec<f32> = (0..3).map(|i| unsafe { *p.add(i) }).collect();
         assert_eq!(got, m.probs());
         hn_reset_context(h);
+        hn_free(h);
+    }
+
+    #[test]
+    fn dream_is_safe_and_matches_the_rust_api() {
+        assert_eq!(hn_dream(0, 4, 1), 0);
+        let h = hn_new(3, 8, 7);
+        let ptr = hn_dream(h, 10, 5) as *const u32;
+        let got: Vec<u32> = (0..10).map(|i| unsafe { *ptr.add(i) }).collect();
+        assert!(got.iter().all(|&s| s < 3));
+        let mut cfg = Config::new(3);
+        cfg.hidden = 8;
+        cfg.seed = 7;
+        let want: Vec<u32> = Model::new(cfg)
+            .dream(10, 5)
+            .into_iter()
+            .map(|s| s as u32)
+            .collect();
+        assert_eq!(got, want);
         hn_free(h);
     }
 }

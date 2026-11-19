@@ -103,3 +103,27 @@ fn ngram_learns_cycle() {
     let s: Vec<f32> = (0..200).map(|i| n.observe(i % 4)).collect();
     assert!(s[199] < 0.1);
 }
+
+#[test]
+fn dream_replays_a_learned_cycle_without_learning() {
+    let mut m = Model::new(Config::new(4));
+    for i in 0..4000 {
+        m.observe(i % 4);
+    }
+    // Context is "just saw 3" (4000 % 4 == 0 -> last symbol was 3).
+    let before = m.probs().to_vec();
+    let d = m.dream(40, 9);
+    assert_eq!(m.probs(), &before[..], "dreaming must not change the model");
+    assert_eq!(d, m.dream(40, 9), "same seed, same dream");
+    let follows = d.windows(2).filter(|w| w[1] == (w[0] + 1) % 4).count();
+    assert!(
+        follows >= 30,
+        "dream should follow the cycle, got {follows}/39: {d:?}"
+    );
+}
+
+#[test]
+fn dream_seed_matters_for_an_untrained_model() {
+    let m = Model::new(Config::new(6));
+    assert_ne!(m.dream(30, 1), m.dream(30, 2));
+}
