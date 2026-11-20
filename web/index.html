@@ -17,7 +17,7 @@ button{font:inherit;margin:0 .25rem .25rem 0;padding:.4rem .9rem;min-width:2.75r
 button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 #plot{width:100%;height:auto;border:1px solid var(--muted);border-radius:4px;color:var(--muted)}
 #empty{border:1px dashed var(--muted);border-radius:4px;padding:.75rem 1rem}
-main{max-width:44rem}.controls{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:center;margin:.5rem 0}select{font:inherit;min-height:2.75rem}</style>
+textarea{font:inherit;max-width:100%}main{max-width:44rem}.controls{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:center;margin:.5rem 0}select{font:inherit;min-height:2.75rem}</style>
 </head>
 <body>
 <main>
@@ -28,6 +28,19 @@ main{max-width:44rem}.controls{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-
 <h2 id="try">Try it</h2>
 <p id="status" role="status">Loading model…</p>
 <div id="empty" hidden>Nothing yet. Press a note below (or type <kbd>1</kbd>–<kbd>6</kbd>, or <kbd>C D E F G A</kbd>) and repeat a short pattern such as C D E C D E. The bars show what the model expects next; the line shows how surprised it was.</div>
+<p><label>Mode <select id="mode"><option value="notes">Notes (6-note melodies)</option><option value="text">Text (a–z, space, period)</option></select></label></p>
+<div id="text-ui" hidden>
+<p><label for="text-input">Text to feed the model (lower-cased; other characters become spaces)</label><br><textarea id="text-input" rows="2" cols="40">the cat sat on the mat. </textarea></p>
+<div class="controls">
+<button id="feed" type="button">Feed text once</button>
+<label>Loop <select id="tpreset"></select></label>
+<button id="tplay" type="button" data-run data-label="Loop text" aria-pressed="false">Loop text</button>
+<button id="tdream" type="button" data-run data-label="Dream text" aria-pressed="false">Dream text</button>
+</div>
+<p>Text so far: <output id="tseen" aria-live="off"></output></p>
+<p>Dreamed text: <output id="tdreamed" aria-live="polite"></output></p>
+</div>
+<div id="notes-ui">
 <div id="notes" role="group" aria-label="Notes to feed the model"></div>
 <div class="controls">
 <label>Melody <select id="preset"></select></label>
@@ -36,6 +49,7 @@ main{max-width:44rem}.controls{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-
 <label><input id="mute" type="checkbox"> Mute</label>
 </div>
 <p><button id="dream" type="button" data-run data-label="Dream" aria-pressed="false">Dream</button> Let the model play 16 notes of its own, without learning from them: <output id="dreamed" aria-live="polite"></output></p>
+</div>
 <p><button id="reset" type="button">New sequence</button> Last surprise: <output id="surprise">–</output> nats</p>
 <p><small>Shortcuts: <kbd>1</kbd>–<kbd>6</kbd> or <kbd>C D E F G A</kbd> play a note; <kbd>Space</kbd> starts or stops the melody.</small></p>
 <h3>Predicted next note</h3>

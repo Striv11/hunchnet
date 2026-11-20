@@ -29,3 +29,10 @@ Newest entries at the bottom. Each entry records what actually changed, what was
 - Web: preset melodies (including a memory-dependent one), Web Audio note player, speed select, mute, Play/Dream buttons with Stop, Space shortcut, shortcuts documented in-page. Pure data/helpers live in `melodies.ts` with tests; DOM timer wiring is still only typechecked and built (e2e is Day 6).
 - Day 4 is marked partial: free-text mode is not done. It needs a variable-size alphabet, which the fixed six-note UI does not support yet.
 - Next: text mode (alphabet from input, reuse Session), then Day 5 hierarchy.
+
+## 2026-11-20 (Day 4, finishing)
+- Added text mode: a fixed 28-symbol alphabet (a-z, space, period) in `textmode.ts` with normalisation (lower-case, accent stripping, junk to single spaces), preset sentences, and a Mode switch in the page. Text has its own `Session` (hidden=48), so switching modes keeps each model and plot; feed-once, loop-preset and dream-text all reuse the existing timer/`run` plumbing.
+- Tests: pure helper tests plus an integration test on the real wasm model: a repeated sentence drops from >2 nats to <0.5 and after "the ca" the top prediction is "t".
+- Chose a fixed alphabet over a dynamic one: the model's vocab is fixed at creation, so growing it would mean rebuilding weights; the fixed set keeps the demo simple. Limitation: no digits or punctuation beyond the period.
+- Still only typechecked/built for DOM wiring (e2e is Day 6). Local web tests needed `rustup target add wasm32-unknown-unknown` again.
+- Day 4 is now complete. Next: Day 5, two-level hierarchy in Rust with a long-range test, then baseline overlay and save/load.
