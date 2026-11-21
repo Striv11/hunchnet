@@ -63,6 +63,10 @@ pub struct Model {
     // Cached by `predict` for the pending step.
     h_prior: Vec<f32>,
     probs: Vec<f32>,
+    /// Additive top-down drive on the prior's pre-activation (from a higher level).
+    topdown: Vec<f32>,
+    /// Sum of state prediction errors (pre-activation space) since last taken.
+    eps_acc: Vec<f32>,
 }
 
 pub fn softmax(z: &[f32]) -> Vec<f32> {
@@ -91,6 +95,8 @@ impl Model {
             prev_sym: None,
             h_prior: vec![0.0; h],
             probs: vec![1.0 / v as f32; v],
+            topdown: vec![0.0; h],
+            eps_acc: vec![0.0; h],
             cfg,
         };
         m.predict();
@@ -108,6 +114,7 @@ impl Model {
     /// Forget the running context but keep the learned weights.
     pub fn reset_context(&mut self) {
         self.h.iter_mut().for_each(|x| *x = 0.0);
+        self.eps_acc.iter_mut().for_each(|x| *x = 0.0);
         self.prev_sym = None;
         self.predict();
     }
@@ -127,10 +134,23 @@ impl Model {
             if let Some(p) = self.prev_sym {
                 s += self.b[i * v + p];
             }
-            self.h_prior[i] = s.tanh();
+            self.h_prior[i] = (s + self.topdown[i]).tanh();
         }
         self.probs = softmax(&self.logits(&self.h_prior));
         &self.probs
+    }
+
+    /// Set the top-down drive from a higher level and refresh the prediction.
+    pub fn set_topdown(&mut self, drive: &[f32]) {
+        assert_eq!(drive.len(), self.cfg.hidden);
+        self.topdown.copy_from_slice(drive);
+        self.predict();
+    }
+
+    /// Take (and clear) the state prediction errors accumulated since the
+    /// last call; this is the gradient signal a higher level learns from.
+    pub fn take_state_error(&mut self) -> Vec<f32> {
+        std::mem::replace(&mut self.eps_acc, vec![0.0; self.cfg.hidden])
     }
 
     /// Current prediction (valid after `new`, `observe` or `reset_context`).
@@ -209,6 +229,7 @@ impl Model {
         // Learning, dynamics pathway: reduce state prediction error h - h_prior.
         for i in 0..hd {
             let eps = (h[i] - self.h_prior[i]) * (1.0 - self.h_prior[i] * self.h_prior[i]);
+            self.eps_acc[i] += eps;
             for j in 0..hd {
                 self.a[i * hd + j] += lr * eps * self.h[j];
             }

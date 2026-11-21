@@ -61,7 +61,7 @@ See [PLAN.md](PLAN.md) for the seven-day arc.
 - [x] Prediction and surprise visualisation
 - [x] Melody playback, speed control and dreaming
 - [x] Text mode
-- [ ] Two-level hierarchy and baseline comparison charts
+- [ ] Two-level hierarchy: Rust core done (`HierModel`, beats a single level on a long-range task); UI baseline overlay and save/load still to do
 - [ ] End-to-end tests, performance budget, accessibility
 - [ ] Polish, screenshots, docs
 

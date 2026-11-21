@@ -8,7 +8,7 @@ Seven-day arc. Every milestone has acceptance criteria that can be checked by a 
 | 2 | WASM bindings and web scaffold | `wasm32` build succeeds in CI; JS can create a model, call `observe` and read `probs`; Vite + TS app builds; Pages workflow deploys `web/dist`; unit test for the TS wrapper | [x] |
 | 3 | Live visualisation | Predicted-probability bars and a surprise-over-time plot update as symbols stream in; user can type/play symbols; empty state explains what to do; plot resets on "new sequence" | [x] |
 | 4 | Melodies, audio and text mode | Preset melodies and free text; Web Audio plays notes; speed control; model "dreams" (samples its own continuation) and plays it; keyboard shortcuts documented in-app | [x] |
-| 5 | Hierarchy and baseline comparison | Second level predicts slower context for level one; Rust test shows it beats single level on a long-range sequence; UI chart overlays n-gram baseline surprise; save/load weights as a file | [ ] |
+| 5 | Hierarchy and baseline comparison | Second level predicts slower context for level one; Rust test shows it beats single level on a long-range sequence; UI chart overlays n-gram baseline surprise; save/load weights as a file | [~] Rust hierarchy + long-range test done; overlay and save/load remain |
 | 6 | Quality: e2e, performance, accessibility | Playwright e2e covers load, stream, reset, dream; benchmark shows >= 20k observe/s at hidden=32 in WASM (budget enforced in CI); Lighthouse-style checks: keyboard-only use, aria labels, contrast in light and dark | [ ] |
 | 7 | Polish and release | Responsive on a 375px viewport; light/dark theme; loading and error states; landing section; README screenshots; WORKLOG retrospective; live Pages link verified | [ ] |
 

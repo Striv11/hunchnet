@@ -36,3 +36,10 @@ Newest entries at the bottom. Each entry records what actually changed, what was
 - Chose a fixed alphabet over a dynamic one: the model's vocab is fixed at creation, so growing it would mean rebuilding weights; the fixed set keeps the demo simple. Limitation: no digits or punctuation beyond the period.
 - Still only typechecked/built for DOM wiring (e2e is Day 6). Local web tests needed `rustup target add wasm32-unknown-unknown` again.
 - Day 4 is now complete. Next: Day 5, two-level hierarchy in Rust with a long-range test, then baseline overlay and save/load.
+
+## 2026-11-21 (Day 5, part 1)
+- Added `HierModel` (`src/hier.rs`): level 2 keeps a slow state that updates every `stride` symbols and drives level 1's state prior top-down. At each chunk boundary it infers its state along level 1's accumulated state prediction error, learns the top-down weights locally, and predicts its own next state from the chunk's mean level-1 state. `Model` gained `set_topdown` and `take_state_error` for this; behaviour without them is unchanged.
+- Test (`tests/hier.rs`): marker X/Y, 10 random a/b fillers, `.`, then P/Q fixed by the marker. Closing-symbol surprise over the last 100 blocks, seeds 1-3: single level 0.92-0.97 nats (worse than the 0.69 chance level), hierarchy 0.07-0.38. The test requires hier < 0.7x single on every seed.
+- Learned: my first test (a fixed-length "ab" repeat) was useless, since neither model can count the block length, so closing-symbol surprise was ~5 nats for both. Random filler plus a "." cue isolates the memory question.
+- Not done: the UI baseline-overlay chart, the wasm export of the hierarchy, and weight save/load. Day 5 stays open.
+- Next: export `HierModel` over the C ABI, overlay n-gram surprise in the plot, then save/load.
